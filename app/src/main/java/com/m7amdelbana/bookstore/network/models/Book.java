@@ -1,47 +1,76 @@
 package com.m7amdelbana.bookstore.network.models;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 
+@Entity
 public class Book implements Serializable {
 
     @SerializedName("_id")
     @Expose
+    @PrimaryKey
+    @ColumnInfo
     private String id;
+
     @SerializedName("name")
     @Expose
+    @ColumnInfo
     private String name;
+
     @SerializedName("image")
     @Expose
+    @ColumnInfo
     private String image;
+
     @SerializedName("discount")
     @Expose
+    @ColumnInfo
     private int discount;
+
     @SerializedName("price")
     @Expose
+    @ColumnInfo
     private double price;
+
     @SerializedName("url")
     @Expose
+    @ColumnInfo
     private String url;
+
     @SerializedName("author")
     @Expose
+    @ColumnInfo
     private String author;
+
     @SerializedName("bookDescription")
     @Expose
+    @ColumnInfo
     private String bookDescription;
+
     @SerializedName("aboutAuthor")
     @Expose
+    @ColumnInfo
     private String aboutAuthor;
+
     @SerializedName("rating")
     @Expose
+    @ColumnInfo
     private float rating;
+
     @SerializedName("totalRating")
     @Expose
+    @ColumnInfo
     private int totalRating;
+
     @SerializedName("isActive")
     @Expose
+    @ColumnInfo
     private boolean isActive;
 
     public String getId() {

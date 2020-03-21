@@ -1,5 +1,6 @@
 package com.m7amdelbana.bookstore.view.home;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import android.view.LayoutInflater;
@@ -15,8 +16,10 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import com.m7amdelbana.bookstore.R;
+import com.m7amdelbana.bookstore.db.AppDatabase;
 import com.m7amdelbana.bookstore.network.api.APIClient;
 import com.m7amdelbana.bookstore.network.models.Book;
 import com.m7amdelbana.bookstore.network.services.APIService;
@@ -41,7 +44,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnIt
     private Button btnSeeAll;
     private NavController navController;
 
-    private List<Book> books;
+    public List<Book> books;
 
     public HomeFragment() {
 
@@ -107,7 +110,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnIt
             public void onResponse(@NotNull Call<List<Book>> call, @NotNull Response<List<Book>> response) {
                 if (response.isSuccessful()) {
                     books = response.body();
-                    setupBooks();
+                    setupBooks(books);
                 }
             }
 
@@ -118,7 +121,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnIt
         });
     }
 
-    private void setupBooks() {
+    private void setupBooks(List<Book> books) {
         BookAdapter bookAdapter = new BookAdapter(books, BookType.HOME, this, null);
 
         LinearLayoutManager layoutManager =
@@ -128,6 +131,18 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnIt
 
         recyclerViewBooks.setLayoutManager(layoutManager);
         recyclerViewBooks.setAdapter(bookAdapter);
+
+        saveBooksToDB();
+    }
+
+    void saveBooksToDB() {
+        InsetBooksTask insetBooksTask = new InsetBooksTask();
+        insetBooksTask.execute(books);
+    }
+
+    void getBooksFromDB() {
+        GetBooksTask getBooksTask = new GetBooksTask();
+        getBooksTask.execute();
     }
 
     @Override
@@ -144,5 +159,54 @@ public class HomeFragment extends Fragment implements View.OnClickListener, OnIt
         Bundle bundle = new Bundle();
         bundle.putSerializable("BOOK", books.get(position));
         navController.navigate(R.id.action_homeFragment_to_bookDetailsFragment, bundle);
+    }
+
+    class InsetBooksTask extends AsyncTask<List<Book>, Void, Void> {
+
+        @Override
+        protected Void doInBackground(List<Book>... lists) {
+            AppDatabase db = Room.databaseBuilder(Objects.requireNonNull(getActivity()).getApplicationContext(),
+                    AppDatabase.class,
+                    "book-store-db")
+                    // .allowMainThreadQueries()
+                    .build();
+            db.bookDao().insertAll(lists[0]);
+            return null;
+        }
+
+//        @Override
+//        protected void onProgressUpdate(Void... values) {
+//            super.onProgressUpdate(values);
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Void aVoid) {
+//            super.onPostExecute(aVoid);
+//        }
+    }
+
+    class GetBooksTask extends AsyncTask<Void, Void, List<Book>> {
+
+        @Override
+        protected List<Book> doInBackground(Void... voids) {
+            AppDatabase db = Room.databaseBuilder(Objects.requireNonNull(getActivity()).getApplicationContext(),
+                    AppDatabase.class,
+                    "book-store-db")
+                    // .allowMainThreadQueries()
+                    .build();
+            return db.bookDao().getAll();
+        }
+
+//        @Override
+//        protected void onProgressUpdate(Void... values) {
+//            super.onProgressUpdate(values);
+//        }
+
+        @Override
+        protected void onPostExecute(List<Book> books) {
+            super.onPostExecute(books);
+            // I have books
+            setupBooks(books);
+        }
     }
 }

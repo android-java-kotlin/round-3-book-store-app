@@ -4,13 +4,19 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -18,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.m7amdelbana.bookstore.R;
+import com.m7amdelbana.bookstore.databinding.FragmentBookDetailsBinding;
 import com.m7amdelbana.bookstore.network.api.APIClient;
 import com.m7amdelbana.bookstore.network.models.Book;
 import com.m7amdelbana.bookstore.network.services.APIService;
@@ -34,16 +41,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class BookDetailsFragment extends Fragment implements View.OnClickListener {
+public class BookDetailsFragment extends Fragment {
 
-    private ImageView imageView;
-    private TextView tvBookName;
-    private TextView tvPrice;
-    private TextView tvAuthor;
-    private RatingBar ratingBar;
-    private TextView tvBookInfo;
-    private TextView tvAuthorInfo;
-    private Button btnPlaceOrder;
+    private BooksDetailsViewModel booksDetailsViewModel;
     private NavController navController;
     private Book book;
 
@@ -53,62 +53,29 @@ public class BookDetailsFragment extends Fragment implements View.OnClickListene
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_book_details, container, false);
+//        View view = inflater.inflate(R.layout.fragment_book_details, container, false);
+//        return view;
+
+        FragmentBookDetailsBinding binding = DataBindingUtil.inflate(inflater, R.layout.fragment_book_details, container, false);
+
+        booksDetailsViewModel = ViewModelProviders.of(getActivity()).get(BooksDetailsViewModel.class);
+
+        binding.setLifecycleOwner(getActivity());
+
+        binding.setViewModel(booksDetailsViewModel);
 
         assert getArguments() != null;
         book = (Book) getArguments().getSerializable("BOOK");
 
-        initView(view);
-        setupData();
-        return view;
+        booksDetailsViewModel.book.setValue(book);
+
+        return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         navController = Navigation.findNavController(view);
-    }
-
-    private void initView(View view) {
-        imageView = view.findViewById(R.id.book_imageView);
-        tvBookName = view.findViewById(R.id.book_name_textView);
-        tvPrice = view.findViewById(R.id.book_price_textView);
-        tvAuthor = view.findViewById(R.id.book_authorName_textView);
-        ratingBar = view.findViewById(R.id.book_ratingBar);
-        tvBookInfo = view.findViewById(R.id.book_info_textView);
-        tvAuthorInfo = view.findViewById(R.id.book_author_info_textView);
-        btnPlaceOrder = view.findViewById(R.id.book_place_order_button);
-        btnPlaceOrder.setOnClickListener(this);
-
-        ImageView imgBack = view.findViewById(R.id.back_imageView);
-        imgBack.setOnClickListener(v -> navController.popBackStack());
-    }
-
-    private void setupData() {
-        Picasso.get()
-                .load(book.getImage())
-                .placeholder(R.drawable.img_placeholder)
-                .into(imageView);
-
-        tvBookName.setText(book.getName());
-        tvAuthor.setText(book.getAuthor());
-        tvPrice.setText(String.valueOf(book.getPrice()));
-        ratingBar.setRating(book.getRating());
-        tvBookInfo.setText(book.getBookDescription());
-        tvAuthorInfo.setText(book.getAboutAuthor());
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.book_place_order_button:
-                if (PrefManager.retrieveAccessToken(Objects.requireNonNull(getActivity())) != null) {
-                    buyBook(book.getId());
-                } else {
-                    Toast.makeText(getActivity(), "You should login first.", Toast.LENGTH_SHORT).show();
-                }
-                break;
-        }
     }
 
     private void buyBook(String id) {

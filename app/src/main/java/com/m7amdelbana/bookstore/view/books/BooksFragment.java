@@ -74,6 +74,9 @@ public class BooksFragment extends Fragment implements OnItemClick, OnBookButton
     private void setupBooks() {
         BookAdapter bookAdapter = new BookAdapter(books, BookType.MY_BOOKS, this, this);
 
+        assert getActivity() != null;
+
+
         LinearLayoutManager layoutManager =
                 new LinearLayoutManager(Objects.requireNonNull(getActivity()).getApplicationContext());
 
