@@ -68,7 +68,9 @@ public class BookHolder extends RecyclerView.ViewHolder {
             btnOpen.setVisibility(View.VISIBLE);
 
         } else if (bookType == BookType.FEATURE || bookType == BookType.HOME) {
-            ratingBar.setRating(book.getRating());
+            if (bookType == BookType.FEATURE) {
+                ratingBar.setRating(book.getRating());
+            }
             if (book.getPrice() == 0) {
                 tvFree.setVisibility(View.VISIBLE);
                 viewHasDiscount.setVisibility(View.GONE);
